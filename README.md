@@ -1,1 +1,1 @@
-# CS-Note
+# A Note Book on CS, AI and NLP
