@@ -19,7 +19,7 @@
 %	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 
-\documentclass[a4paper, 12pt]{book} % Font size (can be 10pt, 11pt or 12pt) and paper size (remove a4paper for US letter paper)
+\documentclass[a3paper, 12pt]{book} % Font size (can be 10pt, 11pt or 12pt) and paper size (remove a4paper for US letter paper)
 
 \usepackage[protrusion=true,expansion=true]{microtype} % Better typography
 \usepackage{graphicx} % Required for including pictures
@@ -706,7 +706,14 @@ We use $\sigma_{n}=\sigma{(z^{(n)}w^\top x^{(n)})}$, then
 
 
 
-\chapter{Support Vector Machine}
+\chapter{Kernel Methods}
+Many linear parametric models can be re-cast into an equivalent ‘dual representation’ in which the predictions are also based on linear combinations of a kernel
+function evaluated at the training data points. As we shall see, for models which are
+based on a fixed nonlinear feature space mapping $\phi{(x)}$, the kernel function is given
+by the relation
+$$k(x,x^{\prime})=\phi{(x)}^{\top}\phi{(x)}$$
+Many of them are \emph{stationary} kernels which have the property that $k(x,x^{\prime})=k(x-x^{\prime})$. (e.g. \emph{radial basis functions})
+\section{Dual Representations}
 
 
 
@@ -848,7 +855,37 @@ Here, $n$ speakers are speaking simultaneously at a party, and any microphone pl
 
 
 \chapter{Graphical Models}
+\textbf{Probabilistic graphic models} offers several useful properties:
+\begin{enumerate}
+	\item They provide a simple way to visualize the structure of a probabilistic model and can be used to design and motivate new models.
+	\item Insights into the properties of the model, including conditional independence properties, can be obtained by inspection of the graph.
+	\item Complex computations, required to perform inference and learning in sophisticated models, can be expressed in terms of graphical manipulations, in which underlying mathematical expressions are carried along implicitly.
+\end{enumerate} 
+\begin{itemize}
+	\item \textbf{Bayesian Network}: \emph{directed graphical models}, are useful for expressing casual relationships between random variables.
+	\item \textbf{Markov Random Field}: \emph{undirected graphical models} are better suited to expressing soft constraints between random variables.
+\end{itemize}
+For the purpose of solving inference problems, it is often convenient to convert \textbf{both} into different representation called \textbf{factor graph}.
+
 \section{Bayesian Networks}
+By considering the joint distribution over $K$ variables given by $p(x_1,...,x_K)$. By repeated application of the product rule of probability:
+\begin{equation}
+p(x_1,...,x_K)=p(x_K|x_1,...,x_{K-1})...p(x_2|x_1)p(x_1)
+\end{equation}
+The \emph{fully connected graph} can represent any form of probability distribution. It is the absence of links in the graph that conveys interesting information about the properties of the class of distributions the graph represents.
+
+\subsection{Definition}
+The joint distributiondefined by a graph is given by the product, over all of the nodes of the graph, ofa conditional distribution for each node conditioned on the variables corresponding
+to the parents of that node in the graph. Thus, for a graph with $K$ nodes, the jointdistribution is given by 
+\begin{equation}
+p(\mathbf{x})=\prod_{k=1}^{K}{p(x_k|pa_k)}
+\end{equation}
+where $pa_k$ denotes the set of parents of $x_k$, and $\mathbf{x}=\{x_1,...,x_K\}$.
+
+\subsection{Discrete Variables}
+Exponential family probability distributions have particular nice properties if we choose the relationship between each parent-child pair in a directed graph to be \emph{conjugate}. When the parent and child node each correspond to discrete variables and when they each correspond to Gaussian variables, the relationship can be extended hierarchically to construct arbitrarily complex directed acyclic graphs.
+
+\section{Conditional Independence}
 
 \section{Markov Random Fields}
 \subsection{Conditional Random Field}
