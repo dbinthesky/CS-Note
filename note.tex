@@ -58,6 +58,7 @@
 \usepackage[T1]{fontenc} % Required for accented characters
 \linespread{1.05} % Change line spacing here, Palatino benefits from a slight increase by default
 
+\newcommand{\CI}{\mathrel{\perp\mspace{-10mu}\perp}}
 
 \makeatletter
 \renewcommand\@biblabel[1]{\textbf{#1.}} % Change the square brackets for each bibliography item from '[1]' to '1.'
@@ -855,12 +856,14 @@ Here, $n$ speakers are speaking simultaneously at a party, and any microphone pl
 
 
 \chapter{Graphical Models}
+
 \textbf{Probabilistic graphic models} offers several useful properties:
 \begin{enumerate}
 	\item They provide a simple way to visualize the structure of a probabilistic model and can be used to design and motivate new models.
 	\item Insights into the properties of the model, including conditional independence properties, can be obtained by inspection of the graph.
 	\item Complex computations, required to perform inference and learning in sophisticated models, can be expressed in terms of graphical manipulations, in which underlying mathematical expressions are carried along implicitly.
 \end{enumerate} 
+In general, graphical models can be classified as two classes:
 \begin{itemize}
 	\item \textbf{Bayesian Network}: \emph{directed graphical models}, are useful for expressing casual relationships between random variables.
 	\item \textbf{Markov Random Field}: \emph{undirected graphical models} are better suited to expressing soft constraints between random variables.
@@ -875,8 +878,11 @@ p(x_1,...,x_K)=p(x_K|x_1,...,x_{K-1})...p(x_2|x_1)p(x_1)
 The \emph{fully connected graph} can represent any form of probability distribution. It is the absence of links in the graph that conveys interesting information about the properties of the class of distributions the graph represents.
 
 \subsection{Definition}
-The joint distributiondefined by a graph is given by the product, over all of the nodes of the graph, ofa conditional distribution for each node conditioned on the variables corresponding
-to the parents of that node in the graph. Thus, for a graph with $K$ nodes, the jointdistribution is given by 
+The joint distribution
+defined by a graph is given by the product, over all of the nodes of the graph, of
+a conditional distribution for each node conditioned on the variables corresponding
+to the parents of that node in the graph. Thus, for a graph with $K$ nodes, the joint
+distribution is given by 
 \begin{equation}
 p(\mathbf{x})=\prod_{k=1}^{K}{p(x_k|pa_k)}
 \end{equation}
@@ -885,8 +891,35 @@ where $pa_k$ denotes the set of parents of $x_k$, and $\mathbf{x}=\{x_1,...,x_K\
 \subsection{Discrete Variables}
 Exponential family probability distributions have particular nice properties if we choose the relationship between each parent-child pair in a directed graph to be \emph{conjugate}. When the parent and child node each correspond to discrete variables and when they each correspond to Gaussian variables, the relationship can be extended hierarchically to construct arbitrarily complex directed acyclic graphs.
 
-\section{Conditional Independence}
+\subsubsection{Logistic regression}
+A logistic sigmoid function acting on a linear combination of the parent variables, giving 
+$$p(y=1|x_1,...,x_M)=\sigma{(w_0+\sum_{i=1}^{M}{w_ix_i})}=\sigma{(\mathbf{w}^{\top}\mathbf{x})}$$
+where $\mathbf{x}=(x_0,x_1,...,x_M)^{\top}$ is an (M+1)-dimensional vector of parent states.
+\subsubsection{Linear-Gaussian models}
+Consider an arbitrary directed acyclic graph over $D$ variables in which node $i$represents a single continuous random variable $x_i$ having a Gaussian distribution.The mean of this distribution is taken to be a linear combination of the states of itsparent nodes $pa_i$ of node $i$
+$$p(x_i|pa_i)=\mathcal{N}{(x_i|\sum_{j\in pa_i}{w_{ij}x_j+b_i, v_i})}$$
+where $w_{ij}$ and $b_i$ are parameters governing the mean, and $v_i$ is the variance of theconditional distribution for $x_i$. The log of the joint distribution is then the log of theproduct of these conditionals over all nodes in the graph and hence takes the form
+$$\ln p{(\mathbf{x})}=\sum_{i=1}^{D}{\ln p(x_i|pa_i)}=-\sum_{i=1}^{D}{\frac{1}{2v_i}(x_i-\sum_{j \in pa_i}{w_{ij}x_j-b_j})^2 + \mathrm{const}}$$
+where $\mathbf{x} = (x_1,..., x_D)^\top$ and 'const' denotes terms independent of $x$. We see that
+this is a quadratic function of the components of $x$, and hence the joint distribution $p(x)$ is a multivariate Gaussian. 
 
+\section{Conditional Independence}
+Consider three variables $a$, $b$ and $c$, and we say $a$ and $b$ are \textbf{conditional independent} if 
+
+\begin{equation}
+p(a|b,c)=p(a|c)
+\end{equation}
+or 
+\begin{equation}
+\begin{split}
+p(a,b|c) &=p(a|b,c)p(b|c) \\
+&=p(a|c)p(b|c)
+\end{split}
+\end{equation}
+or 
+\begin{equation}
+a \CI b \mid c
+\end{equation}
 \section{Markov Random Fields}
 \subsection{Conditional Random Field}
 
