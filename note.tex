@@ -29,8 +29,10 @@
 \usepackage{CJKutf8}
 \usepackage{listings}
 \usepackage{color}
+\usepackage{bm}
 \usepackage{hyperref}
 
+\newcommand\bolden[1]{{\boldmath\bfseries#1}}
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 
@@ -418,6 +420,60 @@ as sections, paragraphs, or sentences.\\
 \subsection{Answer Extraction}
 In this step, a specific answer is extracted from the passage. This task is commonly modeled by \textbf{span labeling}: given a passage, identifying the \textbf{span} of the text which constitutes an answer.
 
+
+\chapter{Machine Translation}
+\section{Transformer}
+
+\subsection{Attention}
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=\linewidth]{figures/attention_transformer.png}
+	\caption{(left) Scaled Dot-Product Attention. (right) Multi-Head Attention consists of several attention layers running in parallel.}
+	\label{fig:boat1}
+\end{figure}
+
+\subsubsection{Scaled dot-product attention}
+An attention function can be described as mapping a \textbf{query} ($Q \in \mathbb{R}^{n\times d_k}$) and a set of \textbf{key-value} pairs ($K \in \mathbb{R}^{n\times d_k} $ and $V \in \mathbb{R}^{m \times d_v}$) to an output, where the query, keys, values, and output are packed matrix of a set of vectors. Which we can think the attention layer \bolden{maps a $n\times d_k$ sequence $Q$  into a new sequence $n \times d_v$}. \\
+
+The output is computed as a \textbf{weighted sum} of the values, where the weight assigned to each value is computed by a compatibility function of the query with the corresponding key.
+\begin{equation}
+\text{Attention}{(Q,K,V)}= \text{softmax}{(\frac{QK^{\top}}{\sqrt{d_k}})}
+\end{equation}
+where $d_k$ is the dimension of $K$, for large values of $d_k$, the dot products grow large in magnitude, pushing the softmax function into regions where it has extremely small gradients.
+\subsubsection{Multi-Head attention}
+Instead of performing a single attention function, we found it beneficial to linearly project the queries, keys and values $h$ times with different learned linear projections to $d_k$, $d_k$ and $d_v$ dimensions.
+\begin{equation}
+\begin{split}
+& \text{MultiHead}(Q,K,V)=\text{Concat}(\text{head}_1, ...,\text{head}_n) W^O \\
+& \text{where } \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)  \\
+\end{split}
+\end{equation}
+Where the projections are parameter matrices $W_i^Q \in \mathbb{R}^{d_{model}\times d_k}$,  $W_i^K \in \mathbb{R}^{d_{model}\times d_k}$,  $W_i^V \in \mathbb{R}^{d_{model}\times d_v}$ and $W^O \in \mathbb{R}^{hd_v \times d_{model}} $.
+
+\subsection{Position-wise Feed-Forward Network}
+Each of the layers contains a 1-d convolutional network with kernel size $1$ (applied to each position separately and identically)
+\begin{equation}
+\text{FFN}(x) = \text{max}(0, xW_1+b_1)W_2+b_2
+\end{equation}
+For example, given a sentence with token $x_1, x_2,..., x_n$, for each $x_i$, we apply the above formula with the same weight and bias.
+
+\subsection{Embeddings and Softmax}
+
+\subsection{Positional Embedding}
+
+\section{Advanced Techniques}
+\subsection{Back Translation}
+\begin{enumerate}
+\item Trains an intermediate system on the parallel data to translate the \textbf{target} monolingual data into
+the \textbf{source} language. 
+\item The synthetic parallel corpus is then
+simply added to the real bitext in order to re-train from the \textbf{source}
+to the \textbf{target} language.
+\end{enumerate}
+
+\cite{edunov2018understanding}
+
+
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
 %----------------------------------------------------------------------------------------
@@ -518,6 +574,24 @@ Since the means and variances are fixed during inference,
 the normalization is simply a linear transform applied to
 each activation. It may further be composed with the scaling by $\gamma$ and shift by $\beta$, to yield a single linear transform
 that replaces $\mathrm{BN}(x)$.
+
+\section{Layer Normalization}
+\subsection{Reasons Behind Layer Normalization}
+The several drawbacks of \emph{batch normalization} remain as 
+\begin{itemize}
+	\item Batch normalization requires running averages of the summed input statistics. However, the summed inputs to the recurrent neurons in a recurrent neural network (RNN) often vary with the length of the sequence, so applying batch normalization to RNNs appears to \textbf{require different statistics for different time-steps}. 
+	\item Batch normalization \textbf{cannot be applied to online learning tasks} or to extremely large distributed models where the \textbf{minibatches have to be small}.
+\end{itemize}
+\subsection{Method}
+We compute the layer normalization statistics over all the hidden units in the same layer as follows:
+\begin{equation}
+\begin{split}
+& \mu^l=\frac{1}{H} \sum_{i=1}^{H}{\alpha_{i}^{l}} \\
+& \sigma^l = \sqrt[]{\frac{1}{H} \sum_{i=1}^{H}{(\alpha_{i}^{l}-\mu^l)^2}} \\
+\end{split}
+\end{equation}
+where $H$ denotes the number of hidden units in a layer, note that the difference between \emph{layer normalization} and \emph{batch normalization} is that all the hidden units in a layer share the same normalization terms $mu$ and $\sigma$, but different training cases have different normalization terms. 
+
 
 \section{Residual Network}
 Denoting the desired underlying mapping as $\mathcal{H}{x}$, we let the stacked nonlinear
@@ -896,9 +970,14 @@ A logistic sigmoid function acting on a linear combination of the parent variabl
 $$p(y=1|x_1,...,x_M)=\sigma{(w_0+\sum_{i=1}^{M}{w_ix_i})}=\sigma{(\mathbf{w}^{\top}\mathbf{x})}$$
 where $\mathbf{x}=(x_0,x_1,...,x_M)^{\top}$ is an (M+1)-dimensional vector of parent states.
 \subsubsection{Linear-Gaussian models}
-Consider an arbitrary directed acyclic graph over $D$ variables in which node $i$represents a single continuous random variable $x_i$ having a Gaussian distribution.The mean of this distribution is taken to be a linear combination of the states of itsparent nodes $pa_i$ of node $i$
+Consider an arbitrary directed acyclic graph over $D$ variables in which node $i$
+represents a single continuous random variable $x_i$ having a Gaussian distribution.
+The mean of this distribution is taken to be a linear combination of the states of its
+parent nodes $pa_i$ of node $i$
 $$p(x_i|pa_i)=\mathcal{N}{(x_i|\sum_{j\in pa_i}{w_{ij}x_j+b_i, v_i})}$$
-where $w_{ij}$ and $b_i$ are parameters governing the mean, and $v_i$ is the variance of theconditional distribution for $x_i$. The log of the joint distribution is then the log of theproduct of these conditionals over all nodes in the graph and hence takes the form
+where $w_{ij}$ and $b_i$ are parameters governing the mean, and $v_i$ is the variance of the
+conditional distribution for $x_i$. The log of the joint distribution is then the log of the
+product of these conditionals over all nodes in the graph and hence takes the form
 $$\ln p{(\mathbf{x})}=\sum_{i=1}^{D}{\ln p(x_i|pa_i)}=-\sum_{i=1}^{D}{\frac{1}{2v_i}(x_i-\sum_{j \in pa_i}{w_{ij}x_j-b_j})^2 + \mathrm{const}}$$
 where $\mathbf{x} = (x_1,..., x_D)^\top$ and 'const' denotes terms independent of $x$. We see that
 this is a quadratic function of the components of $x$, and hence the joint distribution $p(x)$ is a multivariate Gaussian. 
@@ -1015,6 +1094,30 @@ For real valued data, we usually want to search for an optimal split. To efficie
 \end{figure}
 A left to right scan is sufficient to calculate the structure score of all possible split solutions, and we can find the best split efficiently.
 
+
+\chapter{Sampling Methods}
+\section{Standard Distributions}
+
+\section{Importance Sampling}
+One of the principal reasons for wishing to sample from complicated probability distributions is to be able to evaluate expectations of the form 
+\begin{equation}
+\mathbb{E}{(f)}=\int{f{(\mathbf{z})}p{(\mathbf{z})}}d{\mathbf{z}}
+\end{equation}
+One simple strategy for evaluating expectations would be to discretize $z$-space into a uniform grid and evaluate the integrand as a sum of the form
+\begin{equation}
+\mathbb{E}{(f)} \simeq \sum_{l=1}^{L}{p{(\mathbf{z}^{(l)})} f{(\mathbf{z}^{(l)})}}
+\end{equation}
+An obvious problem with this approach is that \textbf{the number of terms in the summation grows exponentially with the dimensionality of z}.
+
+Importance sampling is based on the use of a proposal distribution $q(z)$ from which it is easy to draw samples. We can then express the expectation in the form of a finite sum over samples $\{\mathbf{z}^{(l)}\}$ drawn from $q(\mathbf{z})$
+
+\begin{equation}
+\begin{split}
+\mathbb{E}{[f]} & = \int{f(\mathbf{z})p(\mathbf{z})d\mathbf{z}} \\
+& = \int{f(\mathbf{z}) \frac{p(\mathbf{z})}{q(\mathbf{z})} p(\mathbf{z})d\mathbf{z}} \\
+& \simeq \frac{1}{L} \sum_{l=1}^{L}{\frac{ p(\mathbf{z}^{(l)}) }{q(\mathbf{z}^{(l)})} } f(\mathbf{z}^{(l)})\\
+\end{split}
+\end{equation}
 
 \part{Algorithm}
 \chapter{Trie}
@@ -1286,7 +1389,7 @@ It's worth noting that the number of counters here is independent of N, the leng
 
 \bibliographystyle{unsrt}
 
-\bibliography{sample}
+\bibliography{note}
 
 %----------------------------------------------------------------------------------------
 
