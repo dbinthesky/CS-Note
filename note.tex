@@ -29,8 +29,10 @@
 \usepackage{CJKutf8}
 \usepackage{listings}
 \usepackage{color}
+\usepackage{centernot}
 \usepackage{bm}
 \usepackage{natbib}
+\usepackage{amssymb}
 \usepackage{hyperref}
 
 \newcommand\bolden[1]{{\boldmath\bfseries#1}}
@@ -62,6 +64,7 @@
 \linespread{1.05} % Change line spacing here, Palatino benefits from a slight increase by default
 
 \newcommand{\CI}{\mathrel{\perp\mspace{-10mu}\perp}}
+\newcommand{\nCI}{\centernot{\CI}}
 
 \makeatletter
 \renewcommand\@biblabel[1]{\textbf{#1.}} % Change the square brackets for each bibliography item from '[1]' to '1.'
@@ -1064,13 +1067,13 @@ Finally, it turns out that this way of getting the data to have covariance ident
 x_{\mathrm{ZCAwhite}}=x_{\mathrm{PCAwhite}}V^\top
 \end{equation}
 
-One defining property of ZCA transformation is that it results in whitened data that is \textbf{as close as possible} to the original data (in the least squares sense). In other words, if you want to minimize $\left\lVert \mathbf{X}-\mathbf{X}A^\top \right\rVert^2$ subject to $XA^\top$ being whitened, then you should take $A=W_{ZCA}$. Here is a 2D illustration:
+One defining property of ZCA transformation is that it results in whitened data that is \textbf{as close as possible} to the original data (in the least squares sense). In other words, if you want to minimize $\left\lVert \mathbf{X}-\mathbf{X}A^\top \right\rVert^2$ subject to $XA^\top$ being whitened, then you should take $A=W_{ZCA}$. Figure \ref{fig:zca_pca} is a 2D illustration:
 
 \begin{figure}[htpb]
 	\centering
 	\includegraphics[width=\linewidth]{figures/zca.jpg}
 	\caption{The difference of PCA and ZCA Whitening}
-	\label{fig:boat1}
+	\label{fig:zca_pca}
 \end{figure}
 
 
@@ -1083,7 +1086,7 @@ Here, $n$ speakers are speaking simultaneously at a party, and any microphone pl
 
 \chapter{Graphical Models}
 
-\textbf{Probabilistic graphic models} offers several useful properties:
+\textbf{Probabilistic graphical models} offers several useful properties:
 \begin{enumerate}
 	\item They provide a simple way to visualize the structure of a probabilistic model and can be used to design and motivate new models.
 	\item Insights into the properties of the model, including conditional independence properties, can be obtained by inspection of the graph.
@@ -1136,7 +1139,6 @@ this is a quadratic function of the components of $x$, and hence the joint distr
 
 \section{Conditional Independence}
 Consider three variables $a$, $b$ and $c$, and we say $a$ and $b$ are \textbf{conditional independent} if 
-
 \begin{equation}
 p(a|b,c)=p(a|c)
 \end{equation}
@@ -1151,6 +1153,83 @@ or
 \begin{equation}
 a \CI b \mid c
 \end{equation}
+Conditional independence properties play an important role in using probabilistic models for pattern recognition by simplifying both \textbf{the structure of a model} and \textbf{the computations needed to perform inference and learning under that model.}  \\
+
+An important and elegant feature of graphical models is that conditional independence properties of the joint distribution can be \emph{read directly from the graph without having to perform any analytical manipulations.} The general framework for achieving this is called \emph{d-separation}.
+
+\subsection{Three Example Graphs}
+\subsubsection{Example 1}
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=6cm]{figures/bn_ex1_1.png}
+	\includegraphics[width=6cm]{figures/bn_ex1_2.png}
+	\caption{"tail-to-tail" structure}
+	\label{fig:ci_example1}
+\end{figure}
+\begin{itemize}
+	\item \textbf{none of the variables are observed}: $  a \nCI b \mid \emptyset$
+	\item \textbf{conditioned on the variable c}: 
+	\begin{equation}
+	\begin{split}
+		p(a,b|c) & = \frac{p(a,b,c)}{p(c)} \\
+					& = \frac{p(a)p(c|a)p(b|c)}{p(c)} \\
+					& =p(a|c)p(b|c)\\
+	\end{split}
+	\end{equation}
+$$\Rightarrow a \CI b \mid c$$
+\end{itemize}
+
+\subsubsection{Example 2}
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=6cm]{figures/bn_ex2_1.png}
+	\includegraphics[width=6cm]{figures/bn_ex2_2.png}
+	\caption{"head-to-tail" structure}
+	\label{fig:ci_example2}
+\end{figure}
+\begin{itemize}
+	\item \textbf{none of the variables are observed}: 
+	$a \nCI b \mid \emptyset$
+	\item \textbf{conditioned on the variable c}: 
+	\begin{equation}
+		\begin{split}
+		p(a,b|c) & = \frac{p(a,b,c)}{p(c)} \\
+		& = \frac{p(a)p(c|a)p(b|c)}{p(c)} \\
+		& =p(a|c)p(b|c)\\
+		\end{split}
+	\end{equation}
+	$$\Rightarrow a \CI b \mid c$$
+\end{itemize}
+\subsubsection{Example 3}
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=6cm]{figures/bn_ex3_1.png}
+	\includegraphics[width=6cm]{figures/bn_ex3_2.png}
+	\caption{"tail-to-tail" structure}
+	\label{fig:ci_example3}
+\end{figure}
+\begin{itemize}
+	\item \textbf{none of the variables are observed}:
+	\begin{equation}
+		\begin{split}
+		p(a,b,c) & = p(a)p(b)p(c|a,b)\\
+		\end{split}
+	\end{equation}
+	\text{Marginalizing both sides over} c we obtain
+	$$p(a,b)=p(a)p(b)$$
+	$$\Rightarrow a \CI b \mid \emptyset$$
+	\item \textbf{conditioned on the variable c}:
+	\begin{equation}
+		\begin{split}
+		p(a,b|c) & = \frac{p(a,b,c)}{p(c)} \\
+		& = \frac{p(a)p(b)p(c|a,b)}{p(c)} \\
+		\end{split}
+	\end{equation}
+	$$\Rightarrow a \nCI b \mid c$$
+\end{itemize}
+\subsection{D-separation}
+
+
 \section{Markov Random Fields}
 \subsection{Conditional Random Field}
 
