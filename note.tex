@@ -194,13 +194,13 @@ In many \textbf{morphologically rich} languages like Finnish, French and Spanish
 	\label{fig:fasttext}
 \end{figure}
 
-Figure \ref{fig:fasttext} is the model architecture of FastText, where the only difference between \emph{fastText} and CBOW is the subword model. Given a word \emph{where} and a character n-gram length equals to $3$. We first add special boundary symbols $<$ and $>$ at the beginning and end of words, then taking all its character ngrams --- where $\to$ <wh, whe, her, ere, re>, <where>.
+Figure \ref{fig:fasttext} is the model architecture of FastText, where the only difference between \emph{fastText} and CBOW is the subword model. Given a word \emph{where} and a character n-gram length equals to $3$. We first add special boundary symbols $<$ and $>$ at the beginning and end of words, then taking all its character ngrams --- where $\to$ <wh, whe, her, ere, re>, <where>. \\
 
 The scoring function is then $s(w,c)=\sum_{g\in G_w}{z_g^{\top}v_c}$ 
 
 
 \section{ELMo}
-\citep{peters2018deep} proposed or \textbf{E}mbeddings from \textbf{L}anguage \textbf{Mo}dels (ELMo) in order to resolve two challenges:
+\textbf{E}mbeddings from \textbf{L}anguage \textbf{Mo}dels (ELMo) \citep{peters2018deep} attempts to resolve two challenges:
 \begin{enumerate}
 	\item complex characteristics of word use (e.g.,syntax and semantics)
 	\item how these uses vary across linguistic contexts \\
@@ -262,6 +262,50 @@ BERT primarily report results on two model size:
 	\item \bolden{$\text{BERT}_{\text{LARGE}}$}: L=24, H=2014, A-16, Total Parameters=340M
 \end{itemize}
 The difference between BERT, GPT and ElMo is shown visually in Figure \ref{fig:diff_bert_gpt_emlo}. Note that we often refer the bidirectional Transformer (left) as "Transformer encoder" while the left-context-only version (middle) is referred as a "Transformer decoder".
+
+\subsection{Input Representation}
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=\linewidth]{figures/bert_input_representation.png}
+	\caption{BERT input representation. The input embeddings is the sum of the token embeddings, the segmentation embeddings and the position embeddings.}
+	\label{fig:bert_input_representation}
+\end{figure}
+\begin{itemize}
+	\item use WordPiece embeddings with a 30,000 token vocabulary.
+	\item use learned positional embeddings with supported sequence lengths up to 512 tokens.
+	\item sentences pairs are packed together into a single sequence, \emph{a "sentence" can be an arbitrary span of contiguous text, rather than an actual linguistic sentence}
+	\item the first token of every sequence is al- ways the special classification embedding ([CLS]). The final hidden state (i.e., out- put of Transformer) corresponding to this token is used as the aggregate sequence representation for classification tasks. For non- classification tasks, this vector is ignored.
+	\item sentences are differentiated in two ways. First, we separate them with a special token ([SEP]). Second, we add a learned sentence A embedding to every token of the first sentence and a sentence B embedding to every token of the second sentence.
+\end{itemize}
+
+
+\subsection{Pre-trained Tasks}
+\subsubsection{Masked LM}
+The final hidden vectors corresponding to the \textbf{masked tokens} are fed into an output softmax over vocabulary, as in standard LM. In all of experiments, 15\% of all WordPiece tokens in each sequence at random and then we perform the following procedure:
+\begin{itemize}
+	\item 80\% of the time: Replace the word with the [MASK] token, e.g., \emph{my dog is hairy $\to$ my dog is [MASK]}
+	\item 10\% of the time: Replace the word with a random word, e.g., \emph{my dog is hairy $\to$ my dog is apple}
+	\item 10\% of the time: Keep the word unchanged, e.g., \emph{my dog is hairy $\to$ my dog is hairy.} The purpose of this is to bias the representation towards the actual observed word.
+\end{itemize}
+
+\subsubsection{Next sentence prediction}
+In order to train a model that understands sentence relationships which are beneficial to tasks like Question Answering (QA) and Natural Language Inference (NLI), a binarized \emph{next sentence prediction} task that can be trivially generated from any monolingual corpus. \\
+
+Specifically, when choosing the sentences A and B for each pre-training example, 50\% of the time B is the actual next sentence that follows A, and 50\% of the time it is a random sentence from the corpus. 
+
+\subsection{Ablation Studies}
+\begin{enumerate}
+	\item \textbf{No NSP}: A model which is trained using the “masked LM” (MLM) but without the “next sentence prediction” (NSP) task.
+	\item \textbf{LTR \& No NSP}: A model which is trained using a Left-to-Right (LTR) LM, rather than an MLM
+\end{enumerate}
+The result of all variants of BERT is shown in Figure \ref{fig:bert_ablation_study}.
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=\linewidth]{figures/bert_ablation_study.png}
+	\caption{Ablation over the pre-training tasks using the BERTBASE architecture. “No NSP” is trained without the next sentence prediction task. “LTR \& No NSP” is trained as a left-to-right LM without the next sentence prediction, like OpenAI GPT. “+ BiLSTM” adds a randomly initialized BiLSTM on top of the “LTR + No NSP” model during fine-tuning.}
+	\label{fig:bert_ablation_study}
+\end{figure}
+
 
 \chapter{Chinese Word Segmentation}
 \section{Dictionary-Based Method}
