@@ -30,6 +30,7 @@
 \usepackage{listings}
 \usepackage{color}
 \usepackage{bm}
+\usepackage{natbib}
 \usepackage{hyperref}
 
 \newcommand\bolden[1]{{\boldmath\bfseries#1}}
@@ -108,7 +109,7 @@
 
 \chapter{Vector Semantics}
 \section{Skip-gram}
-The training objective is to find word representations useful for predicting the \textbf{surrounding words} in a sentence or a document. Given a sequence of training words $w_1,w_2,w_3,...,w_T$, the objective is to maximize the average log probability
+\citep{mikolov2013distributed} proposed Skip-gram model whose training objective is to find word representations useful for predicting the \textbf{surrounding words} in a sentence or a document. Given a sequence of training words $w_1,w_2,w_3,...,w_T$, the objective is to maximize the average log probability
 
 $$\frac{1}{T}\sum_{t=1}^{T}{\sum_{-c\le{j\le{c}}}{\log(w_{t+j}|w_t)}}$$
 The basic Skip-gram formulation defines $p(w_{t+j}|w_t)$ using softmax function:
@@ -119,14 +120,14 @@ $$p(w_O|w_I)=\frac{\exp{(\bar{v}_{w_{O}}^{\top}v_{w_{I}})}}{\sum_{w=1}^{W}{\exp{
 	\centering
 	\includegraphics[width=8cm]{figures/skip_gram_architecture.png}
 	\caption{Neural network architecture of Skip-gram model}
-	\label{fig:boat1}
+	\label{fig:skip_gram}
 \end{figure}
 
-Here's the architecture of Skip-gram model, it should be noticed that the model is a \textbf{two-layer} network(hidden units and output units),which leads to one of its drawbacks --- $p(w_{j+t}|w_t)$ is \textbf{asymmetric}, that is, $p(w_2|w_1)$ is not necessarily equal to $p(w_1|w_2)$. We need to separate the vector space between target words and context words. (\textbf{hidden units} and \textbf{output units})
+The architecture of Skip-gram model is shown in Figure \ref{fig:skip_gram}, it should be noticed that the model is a \textbf{two-layer} network(hidden units and output units),which leads to one of its drawbacks --- $p(w_{j+t}|w_t)$ is \textbf{asymmetric}, that is, $p(w_2|w_1)$ is not necessarily equal to $p(w_1|w_2)$. We need to separate the vector space between target words and context words. (\textbf{hidden units} and \textbf{output units})
 
 
 \section{GloVe}
-\textbf{GloVe} or \textbf{Global Vector}, directly captures the global corpus statistics. The model attempts to solve two respective problems in word vector learning algorithms:
+\textbf{GloVe} or \textbf{Global Vector} \citep{pennington2014glove}, directly captures the global corpus statistics. The model attempts to solve two respective problems in word vector learning algorithms:
 
 \begin{itemize}
 	\item \textbf{global matrix factorization}: do relatively poorly on the word analogy task, indicating a sub-optimal vector space structure. 
@@ -139,10 +140,10 @@ Let word-word co-occurrence counts be denoted by $X_{ij}$, denotes the number of
 	\centering
 	\includegraphics[width=9.5cm]{figures/glove_co-occurrence_ratio.png}
 	\caption{ratio of co-occurrence probabilities}
-	\label{fig:boat1}
+	\label{fig:glove_co-occurrence_ratio}
 \end{figure}
 
-In the above example, only in ratio does noise from non-discriminative  words like \emph{water} and \emph{fashion} cancel out, so the large values (much greater than $1$) correlate well with properties specific to ice, and small values (much less than $1$) correlate well with properties specific of steam.
+As shown in Figure \ref{fig:glove_co-occurrence_ratio} , only the ratios noise from non-discriminative  words like \emph{water} and \emph{fashion} cancel out, so the large values (much greater than $1$) correlate well with properties specific to ice, and small values (much less than $1$) correlate well with specific properties of steam.
 
 \subsection{Model Interpretation}
 
@@ -184,23 +185,22 @@ which has the following properties
 we conclude that the complexity of the model is much better than the \textbf{worst case} $O(V^2)$,and in fact it does somewhat better than the on-line window-based methods which scale like $O(|C|)$.
 
 \section{FastText}
-In many \textbf{morphologically rich} languages like Finnish, French and Spanish, it is possible to improve vector representations by using character level information.
+In many \textbf{morphologically rich} languages like Finnish, French and Spanish, \citep{bojanowski2016enriching} it is possible to improve vector representations by using character level information.
 
 \begin{figure}[htpb]
 	\centering
 	\includegraphics[width=8cm]{figures/fasttext_model_architecture.png}
 	\caption{Model architecture of \emph{fastText} for a sentence with $N$ gram features $x_1,...,x_N$. The features are embedded and average to form the hidden variable.}
-	\label{fig:boat1}
+	\label{fig:fasttext}
 \end{figure}
 
-
-Here's the model architecture of FastText, where the only difference between \emph{fastText} and CBOW is the subword model. Given a word \emph{where} and a character n-gram length equals to $3$. We first add special boundary symbols $<$ and $>$ at the beginning and end of words, then taking all its character ngrams --- where $\to$ <wh, whe, her, ere, re>, <where>.
+Figure \ref{fig:fasttext} is the model architecture of FastText, where the only difference between \emph{fastText} and CBOW is the subword model. Given a word \emph{where} and a character n-gram length equals to $3$. We first add special boundary symbols $<$ and $>$ at the beginning and end of words, then taking all its character ngrams --- where $\to$ <wh, whe, her, ere, re>, <where>.
 
 The scoring function is then $s(w,c)=\sum_{g\in G_w}{z_g^{\top}v_c}$ 
 
 
 \section{ELMo}
-\textbf{ELMo} or \textbf{Embeddings from Language Models} attempts to resolve two challenges:
+\citep{peters2018deep} proposed or \textbf{E}mbeddings from \textbf{L}anguage \textbf{Mo}dels (ELMo) in order to resolve two challenges:
 \begin{enumerate}
 	\item complex characteristics of word use (e.g.,syntax and semantics)
 	\item how these uses vary across linguistic contexts \\
@@ -226,6 +226,42 @@ ELMo collapses all layers in $R$ into a single vector, $ENMo_k=E(R_k;\Theta_{e})
 In general, a task specific weighting of all biLM layers: 
 $$ELMo_{k}^{task}=E(R_k;\Theta^{task})=\gamma^{task}\sum_{j=0}^{L}{s_j^{task}h_{k,j}^{LM}}$$
 where $s^{task}$ are softmax-normalized weights and scalar $\gamma^{task}$ allows the task model to scale the entire ELMo vector.
+
+\section{BERT}
+The main contribution of \textbf{B}idirectional \textbf{E}ncoder \textbf{R}epresentation from \textbf{T}ransformer (BERT) are the follows:
+\begin{itemize}
+	\item demonstrate the importance of bidirectional pre-training for language representations, also \emph{in contrast to \citep{peters2018deep} which uses a shallow concatenation of independently trained left-to-right and right-to-left LMs.} 
+	\item pre-trained representations eliminate the needs of many heavily-engineered task-specific architectures.
+	\item bidirectional nature of the model is the single most important new contribution.
+\end{itemize}
+
+\subsection{Apply to Downstream Tasks}
+Generally, there are two existing strategies for applying pre-trained language representations to down-stream tasks: \emph{feature-based} and \emph{fine-tuning}.
+
+\begin{itemize}
+	\item \textbf{Feature-based}: such as ELMo, uses tasks-specific architectures that include the pre-trained representations as additional features.
+	\item \textbf{Fine-tuning}: such as Skip-gram, GPT and BERT, introduced minimal task-specific parameters, and is trained on the downstream  tasks by simply fine-tuning the pre-trained parameters.
+\end{itemize}
+
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=\linewidth]{figures/diff_bert_gpt_emlo.png}
+	\caption{Differences in pre-training model architectures. BERT uses a bidirectional Transformer. OpenAI GPT uses a left-to-right Transformer. ELMo uses the concatenation of independently trained left-to-right and right- to-left LSTM to generate features for downstream tasks. Among three, only BERT representations are jointly conditioned on both left and right context in all layers.}
+	\label{fig:diff_bert_gpt_emlo}
+\end{figure}
+
+\subsection{Model Architecture}
+\begin{itemize}
+	\item \textbf{L}: the number of layers (Transformer block)
+	\item \textbf{H}: the hidden size 
+	\item \textbf{A}: the number of self-attention heads
+\end{itemize}
+BERT primarily report results on two model size:
+\begin{itemize}
+	\item \bolden{$\text{BERT}_{\text{BASE}}$}: L=12, H=768, A=12, Total Parameters=110M
+	\item \bolden{$\text{BERT}_{\text{LARGE}}$}: L=24, H=2014, A-16, Total Parameters=340M
+\end{itemize}
+The difference between BERT, GPT and ElMo is shown visually in Figure \ref{fig:diff_bert_gpt_emlo}. Note that we often refer the bidirectional Transformer (left) as "Transformer encoder" while the left-context-only version (middle) is referred as a "Transformer decoder".
 
 \chapter{Chinese Word Segmentation}
 \section{Dictionary-Based Method}
@@ -423,6 +459,14 @@ In this step, a specific answer is extracted from the passage. This task is comm
 
 \chapter{Machine Translation}
 \section{Transformer}
+The full architecture of a Transformer Seq2Seq model is shown in Figure \ref{fig:transformer}
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=10cm]{figures/transformer.png}
+	\caption{The Transformer - model architecture.}
+	\label{fig:transformer}
+\end{figure}
+
 
 \subsection{Attention}
 \begin{figure}[htpb]
@@ -461,7 +505,7 @@ For example, given a sentence with token $x_1, x_2,..., x_n$, for each $x_i$, we
 
 \subsection{Positional Embedding}
 
-\section{Advanced Techniques}
+\section{Learning From Monolingual Data}
 \subsection{Back Translation}
 \begin{enumerate}
 \item Trains an intermediate system on the parallel data to translate the \textbf{target} monolingual data into
@@ -471,9 +515,73 @@ simply added to the real bitext in order to re-train from the \textbf{source}
 to the \textbf{target} language.
 \end{enumerate}
 
-\cite{edunov2018understanding}
+\citep{edunov2018understanding}
 
+\section{Learning From Multilingual Data}
+\subsection{One-to-Many}
+\citep{wang2018three} proposed three strategies to improve one-to-many multilingual translation based on \textbf{transformer Seq2Seq}:
+\begin{itemize}
+	\item \textbf{Special Label Initialization} adds a special token (e.g. \textbf{2fr}) at the \textbf{beginning of the decoder} instead of normally adding special token (e.g. \textbf{en2fr}) at the end of the source sentence. 
+	\item \textbf{Language-dependent Positional Embedding}
+	\begin{itemize}
+		\item \emph{Fixed embedding method}: introduce trigonometric functions with different orders or offsets on decoder to distinguish different target languages.
+		\item \emph{Dynamic embedding method}: equip the tar- get inputs by embedding the absolute position of different languages separately.
+	\end{itemize}
+	\item \textbf{Shared and Language-dependent Hidden Units per Layer}: For instance, as shown in Figure \ref{fig:wang2018three_shared_layer}, in training step for one target language (tar-1), we tune the shared units and the language-dependent units of tar-1, and mask out other parts. In decoding step, we only use the shared and language-dependent hid- den units of target language tar-1 to predict translation results.
+\end{itemize}
 
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=8cm]{figures/wang2018three.png}
+	\caption{The hidden units of decoder network. Blue part represents the shared units, and yellow, green and red parts denotes different language-dependent units respectively.}
+	\label{fig:wang2018three_shared_layer}
+\end{figure}
+
+\section{Simultaneous Translation}
+\subsection{"Wait-\emph{k}" Model}
+\citep{ma2018stacl} proposed a strategy to achieve this aim on ordinary sequence modeling networks (e.g. RNN and Transformer). Conventional methods models the target token with the following probability 
+\begin{equation}
+p(\mathbf{y}|\mathbf{x})=\prod_{t=1}^{|\mathbf{y}|}{p(y_t|\mathbf{x}, \mathbf{y}_{<t})}
+\end{equation}
+while "wait-k" method modifies the above formula as follows, which means that \bolden{decoder always decodes a $t$ target token by only observing at most  $k+t-1$ source tokens.}
+\begin{equation}
+p(\mathbf{y}|\mathbf{x})=\prod_{t=1}^{|\mathbf{y}|}{p(y_t|\mathbf{x}_{\le g(t)}, \mathbf{y}_{<t})}
+\end{equation}
+\begin{equation}
+g(t)=
+\left\{
+\begin{array}{lr}
+k+t-1 &  t < |x| - k\\
+|x|& otherwise  
+\end{array}
+\right.
+\end{equation}
+
+\subsubsection{Simultaneous translation with Transformers}
+The encoder of Transformer works in a self-attention fashion and takes an input sequence $\mathbf{x}$, and produces a new sequence of hidden states $\mathbf{z}=(x_1,...,z_n) $. Specifically, in the self-attention module, a \emph{self-attention weight} $\alpha_{ij}$ is calculated with $\alpha_{ij}= \frac{e_{ij}}{\sum_{l=1}^{n}{e_{ij}}}$.
+
+In "wait-k" method, we modify the "weight" as $\alpha_{ij}= \frac{e_{ij}}{\sum_{l=1}^{t+k}{e_{ij}}}$ where for each translation time step $t$, the self-attention layer in encoder only allows each word attend to it's prefix.
+\subsubsection{Context caching}
+Due to the nature of self0-attention, each time the translation step increments from $t$ to $t+1$, every word which is prior to the new word $k+t+1$ on the source needs to \textbf{adjust} it's existing representation to absorb the new word's information. Therefore, \bolden{the source context stores a list of context vectors representing the tokens in source sequence at each time step $t$ }.
+ 
+\subsubsection{Refinements: wait-k with Catchup}
+The decoder of proposed “wait-k” process is always k words behind the incoming source stream. From the user perspective, all the previous words are decoded in a one-by-one fashion while \textbf{the last k words are shown at one time on the screen} (shown in Figure \ref{fig:stacl_catchup}) which is not user-friendly (especially when source language and target language have a big gap in length). The solution is to \bolden{replace $g(t)$ with a more flexible $g_c(x)$}
+\begin{equation}
+g(t)=
+\left\{
+\begin{array}{lr}
+k+t-1 -c_t & 1 \le t < |x| - k\\
+|x|& |x| - k ]le t 
+\end{array}
+\right.
+\end{equation}
+where $c_t$ increases by one when $t=3\times c_t$.s
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=\linewidth]{figures/stacl_catchup.png}
+	\caption{Regular "wait-k" process on the left side. Catchup strategy on the right side. There two words less at the last translation step.}
+	\label{fig:stacl_catchup}
+\end{figure}
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
 %----------------------------------------------------------------------------------------
@@ -1387,7 +1495,7 @@ It's worth noting that the number of counters here is independent of N, the leng
 
 
 
-\bibliographystyle{unsrt}
+\bibliographystyle{abbrvnat}
 
 \bibliography{note}
 
